@@ -1,0 +1,1495 @@
+//
+int A[162+1],B[162+1],C[12+1],D[39+1],E[39+1],X[8+1],Y[8+1],U[8+1],V[8+1];
+char DAT[12][10];
+char wqxchar[30][5];
+long i,j,x,y,z,v,va; 
+long c,ca,b,ba,wx,lx,o;//c是气槽 b是气 
+long a,aa,g,ga,h,ha,d,da,e,ea,k,ka,f,fa,q,qa,ex,tx,n,na,m,ma,p,pa;//a是血 g是横坐标 h是纵坐标 d是倒地、后仰  f是高度上升 q=-1是必杀起 q=1是防御 击飞 正常的量 n>0表示正在出招 
+long r,ra,ta,la,sa,s,t,l;//r是飞行器半径 
+long datx[20],mode;
+long win,wina;
+long com_list[12];
+long com_now;
+long list_1p[10];
+long size_1p;
+long list_2p[10];
+long size_2p;
+long time_left;
+long time_left0;
+long time_sub;
+long end;
+long end_time;
+long pre_wina;
+long pre_win;
+long time_on;
+long a_bak;
+long aa_bak;
+//----------------------------------------------------------------
+//------w
+void draw_time()
+{
+	Box(65,14,95,16,0,1);
+	Box(65,14,65,14,1,0);
+	Box(65,16,65,16,1,0);
+	Box(95,16,95,16,1,0);
+	Box(95,14,95,14,1,0);
+	Box(65,15,65+time_left*30/time_left0,15,1,1);
+	//Box(65,15,95,15,1);
+	//Refresh();
+}
+void sun()
+{
+	int tmp;
+tmp=0;
+if (n>0) {if (D[0]==4&&D[p-1]==4) tmp=2;}
+if (na>0) {if (E[0]==4&&E[pa-1]==4) tmp=2;}
+if (tmp==2) Box(0,0,159,79,1,2);
+}
+void cls()
+{
+   ClearScreen();
+   Block(0,0,80,7,1);
+   Block(80,0,160,7,1);
+   Block(0,9,160,12,0);
+   Block(80,1,a,6,0);
+   Block(160,1,aa+79,6,0);
+   Rectangle(1,9,c,12,2);
+   Rectangle(81,9,ca+80,12,2);
+   Block(81,10,ba+80,11,1);
+   Block(1,10,b,11,1);
+   Refresh();
+}
+void Dat()
+{
+ strcpy(DAT[0],"刘大夫");
+ strcpy(DAT[1],"李元元");
+ strcpy(DAT[2],"于向东");
+ strcpy(DAT[3],"张江东");
+ strcpy(DAT[4],"任向辉");
+ strcpy(DAT[5],"滕王勃");
+ strcpy(DAT[6],"克隆刘");
+ strcpy(DAT[7],"克隆肯");
+ strcpy(DAT[8],"克隆罗");
+ strcpy(DAT[9],"克隆K'");
+ strcpy(DAT[10],"拳击曹");
+ strcpy(DAT[11],"刀锋顾");
+}
+//------------------------------------------
+void dl()
+{
+ Delay(datx[1]);
+}
+//------------------------------------------------------------------
+void Read1()
+{
+  z=48+x*402;
+  y=fopen("/LavaData/Wind.dat","r");
+  if(y==0){printf("/LavaData/Wind.dat打开失败");Delay(1000);exit(0);}
+  fseek(y,z,0); 
+  fread(A,1,324,y);
+  fread(D,1,78,y);
+  fclose(y);//读P1数据
+}
+void Read()
+{
+  z=48+x*402;
+  y=fopen("/LavaData/Wind.dat","r");
+  if(y==0){printf("/LavaData/Wind.dat打开失败");Delay(1000);exit(0);}
+  fseek(y,z,0); 
+  fread(B,1,324,y);
+  fread(E,1,78,y);
+  fclose(y);
+}
+//--------------------------------------------------------------
+int select_comm(long aaa,long bbb)
+{
+	int tmp;
+	 i=0;
+  while (i!=111)
+ {
+  Locate (aaa,bbb);
+  printf("%c%s",16,DAT[x]);
+  //Delay(200);
+  tmp=Inkey();
+  if (tmp==21||tmp==120) 
+  {
+   x=x+1;
+   if (x>11) x=0;
+  } 
+  if (tmp==20||tmp==115)
+  {
+   x=x-1;
+   if (x<0) x=11;
+  } 
+  if (tmp==13||tmp==100)
+  {
+	  i=111;
+  }
+  if (tmp==27) {return -1;};
+     
+ } //选人
+ return 0;
+ // Read1();
+}
+int select1()
+{
+	if(select_comm(3,6)==-1) return -1;
+	return 0;
+}
+//------------------------------------------------------
+int select()
+{
+ //x=0;
+ if(select_comm(3,6)==-1) return -1;
+ return 0;
+  //SetScreen(0);
+}
+int mychar()
+{
+	int tmp;
+	int tmp2;
+	tmp2=0;
+		//	if(size_1p!=3)Circle(64,24+16*size_1p,5,1,1 );
+		//if(size_2p!=3)Circle(96,24+16*size_2p,5,0,1 );
+	while(1)
+	{  
+		tmp2++;
+		if(size_1p!=3)Circle(64,24+16*size_1p,5,1,tmp2%2 );
+		if(size_2p!=3)Circle(96,24+16*size_2p,5,0,tmp2%2);
+		//getchar();
+		tmp=Inkey();
+		if(tmp!=0)
+		{
+			if(tmp==27) {return -1;}
+			Circle(64,24+16*size_1p,5,1,0 );
+			Circle(96,24+16*size_2p,5,1,0 );
+			return tmp;
+		}
+		Delay(200);
+	}
+}
+int select_vs()
+{
+	int tmp;
+	SetScreen(0);
+	size_1p=0;size_2p=0;
+	list_1p[0]=0;list_2p[0]=0;
+	//printf("111111111111111111111111111111111111111");
+	printf("      风斗战队");
+	Locate(1,1);
+   printf("%s",DAT[list_1p[size_1p]]);
+  Locate(1,13);
+     printf("%s",DAT[list_2p[size_2p]]);
+
+	while(1)
+	{
+		tmp=mychar();
+		if(tmp==-1) return -1;
+		if(tmp==113&&size_1p!=3)
+		{
+			size_1p++;
+			Locate(size_1p+1,1);
+			list_1p[size_1p]=list_1p[size_1p-1];
+			if(size_1p==3)
+			{
+				Locate(size_1p+1,1);
+				//printf("  ok");
+			}
+			else printf("%s",DAT[list_1p[size_1p]]);
+		}
+		if(tmp==13&&size_2p!=3)
+		{
+			size_2p++;
+			Locate(size_2p+1,13);
+			list_2p[size_2p]=list_2p[size_2p-1];
+			if(size_2p==3)
+			{
+				Locate(size_2p+1,13);
+				//printf("  ok");
+			}
+			else printf("%s",DAT[list_2p[size_2p]]);
+		}
+		if(tmp==21&&size_2p!=3)
+		{
+			list_2p[size_2p]++;
+			if(list_2p[size_2p]>11) 
+			{
+				list_2p[size_2p]=0;
+			}
+			Locate(size_2p+1,13);
+			printf("%s",DAT[list_2p[size_2p]]);
+		}
+		if(tmp==20&&size_2p!=3)
+		{
+			list_2p[size_2p]--;
+			if(list_2p[size_2p]<0) 
+			{
+				list_2p[size_2p]=11;
+			}
+			Locate(size_2p+1,13);
+			printf("%s",DAT[list_2p[size_2p]]);
+		}
+		if(tmp==120&&size_1p!=3)
+		{
+			list_1p[size_1p]++;
+			if(list_1p[size_1p]>11) 
+			{
+				list_1p[size_1p]=0;
+			}
+			Locate(size_1p+1,1);
+			printf("%s",DAT[list_1p[size_1p]]);
+		}
+		if(tmp==115&&size_1p!=3)
+		{
+			list_1p[size_1p]-- ;
+			if(list_1p[size_1p]<0) 
+			{
+				list_1p[size_1p]=11;
+			}
+			Locate(size_1p+1,1);
+			printf("%s",DAT[list_1p[size_1p]]);
+		}
+		if(size_1p==3&&size_2p==3)
+		{
+
+			Locate(2,9);
+			printf("%s",wqxchar[2]);
+			//Delay(100);
+			getchar();
+			Delay(200);
+			return 0;
+		}
+		//printf("%d",tmp);
+	}
+	return 0;
+}
+//------------------------------------------------------------------
+void Begin()
+{ 
+   int tmp;
+   int count;
+   count=0;
+ x=1;
+ while (1)
+ {
+  ClearScreen();
+  TextOut(48,6, "Mode Select",1);
+  TextOut(45,22,"VS. Computer",1);
+  TextOut(51,35,"VS. Player",1);
+  TextOut(58,48,"Settings",1);
+  TextOut(72,64,"Exit",1);
+  Block(1,1,160,80,2); 
+  while (count++) 
+  {
+   tmp=Inkey();
+   if(tmp!=0) count=0;
+   if(count>50)
+   {
+	   mode=10;
+	   return ;
+   }
+   if (tmp==116) {exit(0);}
+   else if (tmp==21) 
+   {
+   	x=x+1;
+	if (x==4) x=3;
+	break;
+   	} 
+   else if (tmp==20) 
+   {
+	x=x-1;
+	if (x==-1) x=0;
+   	 break;
+   	}
+   else if (tmp==13) {x=x+5;break;}
+   else if (tmp==120) {x=10;break;}
+   else if (tmp==27) {exit(0);}
+   if (x==0) Rectangle(45,22,117,34,2);
+   if (x==1) Rectangle(51,35,111,47,2);
+   if (x==2) Rectangle(58,48,106,60,2);
+   if (x==3) Rectangle(72,64,96,76,2);
+   Delay(200);
+   Refresh();
+  }
+  if (x>=5)  break;
+ }
+ x=x-5;
+ if (x==0) mode=2;//vs com
+ if (x==1) mode=0;//vs player
+ if (x==2) mode=9;//set
+ if (x==3) {exit(0);}
+ if (x==5) mode=8;//com vs com
+
+}
+//-----------------------------------------------------------------
+void DrawI() //画界面
+{
+ SetScreen(0);
+ printf("\n      风斗之王\n\n\n版权所有 Y.S.Studio");
+ /*
+ C[10]=10;
+ C[11]=11;
+ for (i=0;i<10;i++) 
+ {
+  j=rand()/3277;
+  while (C[j]>0)
+  {
+   j=j+1;
+   if (j>9) j=0;
+  }
+ C[j]=i;
+ } //随机排序*/
+}
+void draw_vs() //画界面
+{
+ SetScreen(0);
+ printf("\n      风斗战队\n\n\n版权所有 Y.S.Studio");
+ getchar();
+}
+//----------------------------------------------------------------
+void KoDraw()
+{
+ for (i=0;i<8;i++) 
+  {
+   Line(48+i,32,48+i,63,1);
+   Line(48+i,48,63+i,32,1);
+   Line(48+i,48,63+i,63,1);
+   Ellipse (96+i,48,8,16,0,1);
+  }
+ Delay(500); 
+}
+//----------------------------------------------------------------------------------------
+void HitDraw()//击中
+{
+ for (i=0;i<10;i++) Circle(y,z+5,i,0,1);
+ for (i=0;i<10;i++) Circle(y,z+5,i,1,0);
+}
+//----------------------------------------------------------------------------------------
+void GuardDraw()//防御
+{
+ for (i=0;i<4;i++) Circle(y,z+5,i*2,0,1);
+}
+//---------------------------------------------------------------------------------------
+void SkillDraw()
+{
+ cls();
+ Box(1,15,160,80,1,2);
+ for (i=3;i>=0;i--) 
+  {Delay(50);
+   for (j=0;j<3;j++) Circle(y,z,i*8+j,0,0);
+   for (j=0;j<3;j++) Circle(y,z,i*8+j+8,0,1);
+  }
+}
+//----------------------------------------------------------------------------------------
+
+void Action()//动作
+{
+ pa=pa+1;
+ for (i=0;i<8;i++) 
+   {
+     V[i]=B[x+i+10];
+     U[i]=V[i]/128;
+     V[i]=V[i]-U[i]*128;
+     if (U[i]>127) U[i]=U[i]-256;
+     if (V[i]>63) V[i]=V[i]-128;    
+   }
+} 
+void Action1()//动作
+{
+ p=p+1;
+ for (i=0;i<8;i++) 
+   {
+     Y[i]=A[x+i+10];
+     X[i]=Y[i]/128;
+     Y[i]=Y[i]-X[i]*128;
+     if (X[i]>127) X[i]=X[i]-256;
+     if (Y[i]>63) Y[i]=Y[i]-128;    
+   } 
+} 
+//---------------------------------------------------------------------------------------
+void LifeDecrease()
+{
+  if (B[x+8]>0&&q>0) {y=g;z=h;GuardDraw();a=a-B[x+9];d=3;e=3;ga=ga-B[x+6];ha=ha-B[x+7];Action();}
+ else 
+  {
+  if (B[x+8]!=0) {y=g;z=h;HitDraw();a=a-abs(B[x+8]);} 
+  d=B[x+3];e=B[x+4];f=B[x+5];q=0;
+  ga=ga-B[x+6];ha=ha-B[x+7];Action();
+  } 
+} 
+void LifeDecrease1()
+{
+  if (A[x+8]>0&&qa>0) {y=ga;z=ha;GuardDraw();aa=aa-A[x+9];da=3;ea=3;g=g+A[x+6];h=h-A[x+7];Action1();}
+ else 
+  {
+  if (A[x+8]!=0) {y=ga;z=ha;HitDraw();aa=aa-abs(A[x+8]);} 
+  da=A[x+3];ea=A[x+4];fa=A[x+5];qa=0;
+  g=g+A[x+6];h=h-A[x+7];Action1();
+  } 
+} 
+//----------------------------------------------------------------------------------------
+void BulletSkill()//飞行器技能
+{
+  if (ka>0&&na<3) {ga=ga-B[x+6];ha=ha-B[x+7];Action();}
+  else 
+  {
+  aa=aa-B[x+7];
+  ra=x;
+  ka=ga;
+  la=ha+5;
+  sa=B[x+2];
+  ta=B[x+6];
+  Action();
+  } 
+} 
+void BulletSkill1()//飞行器技能
+{
+  if (k>0&&n<3) {g=g+A[x+6];h=h-A[x+7];Action1();}
+  else 
+  {
+  a=a-A[x+7];
+  r=x;
+  k=g;
+  l=h+5;
+  s=A[x+2];
+  t=A[x+6];
+  Action1();
+  } 
+} 
+//----------------------------------------------------------------------------------------
+void CloseSkill()//近身技能
+{
+ if (abs(g-ga)<B[x+1]&&abs(h-ha)<B[x+2]) 
+ {
+ ga=g;
+ h=ha;
+ LifeDecrease();
+ }
+ else na=0;
+} 
+void CloseSkill1()//近身技能
+{
+ if (abs(g-ga)<A[x+1]&&abs(h-ha)<A[x+2]) 
+ {
+ g=ga;
+ ha=h;
+ LifeDecrease1();
+ }
+ else n=0;
+} 
+//----------------------------------------------------------------------------------------
+void NormalSkill()//一般技能
+{
+  ma=B[x];
+  if (abs(g-ga)>B[x+1]||abs(h-ha)>B[x+2]||m>0||h>67) {ga=ga-B[x+6];ha=ha-B[x+7];Action();}
+  else 
+  {
+   b=b+3;
+   if (abs(na*10-35)>5) ba=ba+3;
+   LifeDecrease();
+  } 
+} 
+void NormalSkill1()//一般技能
+{
+  m=A[x];
+  if (abs(g-ga)>A[x+1]||abs(h-ha)>A[x+2]||ma>0||ha>67) {g=g+A[x+6];h=h-A[x+7];Action1();}
+  else 
+  {
+   ba=ba+3;
+   if (abs(n*10-35)>5) b=b+3;
+   LifeDecrease1();
+  } 
+} 
+//----------------------------------------------------------------------------------------
+void SkillFirst() //出招前
+{
+ qa=0;
+ pa=E[x];
+ na=x;
+ if (n<1&&abs(d)<2&&CheckKey(97)!=0) q=1;
+} 
+void SkillFirst1() //出招前
+{
+ q=0;
+ p=D[x];
+ n=x;
+ if (na<1&&abs(da)<2&&CheckKey(14)!=0) qa=1;
+} 
+//----------------------------------------------------------------------------------------
+void SkillJudge()//出招判断
+{
+   if (E[pa]<0) {da=-E[pa];na=0;}
+ else 
+     {
+       x=E[pa]*18;
+       if (0==B[x]) BulletSkill();
+       else if (0>B[x]) CloseSkill();
+       else NormalSkill();
+     } 
+ 
+} 
+void SkillJudge1()
+{
+   if (D[p]<0) {d=-D[p];n=0;}
+ else 
+     {
+       x=D[p]*18;
+       if (0==A[x]) BulletSkill1();
+       else if (0>A[x]) CloseSkill1();
+       else NormalSkill1();
+     } 
+ 
+} 
+//----------------------------------------------------------------------------------------
+void Bullet()//飞行器
+{
+ if (0==ka) ;
+ else 
+  {
+    Circle(ka,la,(B[ra+8])/2,1,1);
+    //Delay(100);
+    ka=ka-B[ra+1];
+    sa=sa-1;
+    if (ka<10||sa<1||ta<1) ka=0;
+    if (k!=0) 
+    {
+     x=(A[r+8]+B[ra+8]);
+     if (2*abs(k-ka)<x&&2*abs(l-la)<x) ta=ta-1;
+    } 
+    if (2*abs(ka-g)-6>B[ra+8]||2*abs(la-h-3)-10>B[ra+8]||m>0||h>67) ;
+    else
+     {
+       b=b+3;
+       ta=ta-1;
+       if (q>0) {a=a-B[ra+9];d=3;e=3;q=1;y=g;z=h;GuardDraw();}
+       else {a=a-B[ra+8];d=B[ra+3];q=0;y=g;z=h;HitDraw();e=B[ra+4];f=B[ra+5];} 
+     } 
+  } 
+} 
+void Bullet1()//飞行器
+{
+ if (0==k) ;
+ else 
+  {
+    Circle(k,l,(A[r+8])/2,1,1);
+    //Delay(100);
+    k=k+A[r+1];
+    s=s-1;
+    if (k>149||s<1||t<1) k=0;
+    if (ka!=0) 
+    {
+     x=(A[r+8]+B[ra+8]);
+     if (2*abs(k-ka)<x&&2*abs(l-la)<x) t=t-1;
+    } 
+    if (2*abs(k-ga)-6>A[r+8]||2*abs(l-ha-3)-10>A[ra+8]||ma>0||ha>67) ;
+    else
+     {
+       ba=ba+3;
+       t=t-1;
+       if (qa>0) {aa=aa-A[r+9];da=3;ea=3;qa=1;y=ga;z=ha;GuardDraw();}
+       else {aa=aa-A[r+8];da=A[r+3];qa=0;y=ga;z=ha;HitDraw();ea=A[r+4];fa=A[r+5];} 
+     } 
+  } 
+} 
+//----------------------------------------------------------------------------------------
+  void DrawP()//画人物 血槽 气槽 修复血量
+  {
+	  int tmp;
+   if (a<0) a=0;
+   if (aa<0) aa=0;
+   cls();
+   if (a>80) a=80;
+ //  Box(1,15,160,80,1,0);
+   if (q>0) {Box(g-3,h-3,g+3,h+12,0,1);}
+    else if (d<0) {Circle(g-12,h,3,1,1);Line(g-12,h,g,h+3,1);}
+    else if (d>0) {Circle(g-3,h,3,1,1);Line(g-3,h,g,h+12,1);}
+    else if (n<1) {Circle(g,h,3,1,1);Line(g,h,g,h+12,1);}
+    else for (i=0;i<8;i=i+2) {if (i==0) {Circle(g+X[i],h+Y[i],3,1,1);} Line(g+X[i],h+Y[i],g+X[i+1],h+Y[i+1],1);} //p1状态
+   if (aa>80) aa=80;
+   if (qa>0) {Box(ga-3,ha-3,ga+3,ha+12,0,1);}
+   else if (da<0) {Circle(ga+12,ha,3,1,1);Line(ga+12,ha,ga,ha+3,1);}
+   else if (da>0) {Circle(ga+3,ha,3,1,1);Line(ga+3,ha,ga,ha+12,1);}
+   else if (na<1) {Circle(ga,ha,3,1,1);Line(ga,ha,ga,ha+12,1);}
+   else for (i=0;i<8;i=i+2) {/*Delay(50)*/;if (i==0) {Circle(ga-U[i],ha+V[i],3,1,1);} Line(ga-U[i],ha+V[i],ga-U[i+1],ha+V[i+1],1);} //p2状态for (i=0;i<z;i++) getc(y);
+  }
+//--------------------------------------------------------------------------------------
+void Reset()//初始化
+{
+   time_left=time_left0;
+   end=0;
+   end_time=0;
+   c=80;
+   ca=80;
+   b=0;
+   ba=0;
+   wx=0;
+   lx=0;
+   x=0;
+   //x=C[o];
+   SetScreen(0);
+   Locate (1,6);
+   //printf("Stage %d\n       %s",o+1,DAT[x]);
+   //Delay(50);
+   //Read1();
+   win=0;
+   pre_win=0;
+   pre_wina=0;
+   wina=0;
+   a=80;
+   aa=80;
+   g=50;
+   ga=109;
+   h=67;
+   ha=67;
+   d=0;
+   da=0;
+   e=0;
+   ea=0;
+   k=0;
+   ka=0;
+   f=0;
+   fa=0;
+   q=1;
+   qa=0;
+   ex=0;
+   tx=0;
+   n=0;
+   na=0;
+   m=0;
+   ma=0;
+   SetScreen(0);
+   Box(0,0,80,7,1,1);
+   Box(80,0,160,7,1,1);
+}
+//---------------------------------------------------------------------
+void reset2()
+{
+	pre_wina=0;
+	pre_win=0;
+	SetScreen(0);
+	end=0;
+	end_time=0;
+   g=50;
+   ga=109;
+   h=67;
+   ha=67;
+   d=0;
+   da=0;
+   e=0;
+   ea=0;
+   k=0;
+   ka=0;
+   f=0;
+   fa=0;
+   q=1;
+   qa=0;
+   ex=0;
+   tx=0;
+   n=0;
+   na=0;
+   m=0;
+   ma=0;
+   Box(0,0,80,7,1,1);
+   Box(80,0,160,7,1,1);
+}
+//-----------------------------------------------------------------------------------------------------
+void recover() //击倒和击飞及恢复
+{
+   if (0==da) ;
+   else 
+    {
+     na=0;
+     if (da>0) da=da-1;
+     if (da<0) {if (ha<76) ga=ga+ea; else {da=da+1;if (0==da) {ha=67;ea=0;} } }  
+    } 
+   x=0;
+   if ((qa>0)&&(0==da)) qa=0;
+}
+void recover1()
+{
+    if (0==d) ;
+   else 
+    {
+     n=0;
+     if (d>0) d=d-1;
+     if (d<0) {if (h<76) g=g-e; else {d=d+1;if (0==d) {h=67;e=0;} } }  
+    } 
+   x=0;
+   if ((q>0)&&(0==d)) q=0;
+  
+}
+//------------------------------------------------------------------------
+void control()
+  {
+	  if(end) return;
+   if (CheckKey(112)!=0) {x=5;}
+   else if (CheckKey(23)!=0) {x=6;}
+   else if (CheckKey(14)!=0) {x=1;}
+   else if (CheckKey(13)!=0) {x=3;}
+   else if (CheckKey(21)!=0) {x=4;}
+   else if (CheckKey(20)!=0) {x=2;} 
+   if (CheckKey(22)!=0) {qa=-1;} 
+  }
+void control1()
+  {
+	  if(end) return;
+   if (CheckKey(97)!=0&&CheckKey(122)!=0) {x=6;}
+   else if (CheckKey(115)!=0&&CheckKey(120)!=0) {x=5;}
+   else if (CheckKey(97)!=0) {x=1;}
+   else if (CheckKey(113)!=0) {x=3;}
+   else if (CheckKey(120)!=0) {x=4;}
+   else if (CheckKey(115)!=0) {x=2;} 
+   if (CheckKey(122)!=0) {q=-1;} 
+  }
+void program1()
+   {
+	   if(end) return;
+     if (q<1&&rand()/3277>4) {q=-1;} 
+     if ((ka>0&&rand()/3277>3)||(na>0&&rand()/3277>5)) x=1;
+     else x=rand()*5/32767+2;
+     if (x<5) ;
+     else 
+      {
+      j=x*2-4;
+      if (ga>g+A[j]||abs(h-ha)>A[j+1]) {x=2;q=0;} 
+      }
+   }
+void program()
+   {
+	   if(end) return;
+     if (qa<1&&rand()/3277>4) {qa=-1;} 
+     if ((k>0&&rand()/3277>3)||(n>0&&rand()/3277>5)) x=1;
+     else x=rand()*5/32767+2;
+     if (x<5) ;
+     else 
+      {
+      j=x*2-4;
+      if (g<ga-B[j]||abs(h-ha)>B[j+1]) {x=2;qa=0;} 
+      }
+   }
+//---------------------------------------------------------
+void respond()//对控制做出响应
+{
+   if (da!=0) ;
+   else if (na>0) {SkillJudge();}
+   else if ((x==1)&&((n>0)||(k>0))) qa=1;
+   else if (x==1) ga=ga+3;
+   else if ((x==2)&&(qa>-1)) ga=ga-3;
+   else if ((x==3)&&(0==na)) {na=-1;fa=4;}
+   else if ((ca<=70)&&(x>4)) {x=x-2;ca=ca+10;y=ga;z=ha;SkillDraw();SkillFirst();SkillJudge();}
+   else if ((-1==qa)&&(abs(x-3)==1)) {x=x/2;ba=ba+8;SkillFirst();SkillJudge();}
+   else if (x==4) {x=5;ba=ba+3;SkillFirst();SkillJudge();} 
+}
+  void respond1()
+  {
+   if (d!=0) ;
+   else if (n>0) {SkillJudge1();}
+   else if ((x==1)&&((na>0)||(ka>0))) q=1;
+   else if (x==1) g=g-3;
+   else if ((x==2)&&(q>-1)) g=g+3;
+   else if ((x==3)&&(0==n)) {n=-1;f=4;}
+   else if ((c<=70)&&(x>4)) {x=x-2;c=c+10;y=g;z=h;SkillDraw();SkillFirst1();SkillJudge1();}
+   else if ((-1==q)&&(abs(x-3)==1)) {x=x/2;b=b+8;SkillFirst1();SkillJudge1();}
+   else if (x==4) {x=5;b=b+3;SkillFirst1();SkillJudge1();} 
+  }
+//---------------------------------------------------------------------
+  void move()
+  {
+   if (fa>0) {fa=fa-1;ha=ha-4;}
+   else if (na>0) ;
+   else 
+    {
+     ha=ha+4;
+     if (da<0&&ha>75) ha=76;
+     else if (da>-1&ha>66) {ha=67;na=0;} 
+    } 
+   if (da<1||ea==0) ;
+   else {ea=ea-1;ga=ga+4;} 
+   if (ha<32) ha=32;
+   if (ga<g) ga=g;
+   if (ga>139) 
+    {
+    if (da==0) ga=139;
+    else {g=g+139-ga;ga=139;if (g<20) g=20;} 
+    } 
+   if (ca==40&&ba>ca) ba=ca;
+   if (ba>ca) {ba=ba-ca;ca=ca-10;} 
+   if (ma>0) ma=ma-1;
+  }
+void move1()
+   {
+   if (f>0) {f=f-1;h=h-4;}
+   else if (n>0) ;
+   else 
+    {
+     h=h+4;
+     if (d<0&&h>75) h=76;
+     else if (d>-1&h>66) {h=67;n=0;} 
+    } 
+   if (d<1||e==0) ;
+   else {e=e-1;g=g-4;} 
+   if (h<32) h=32;
+   if (ga<g) g=ga;
+   if (g<20) 
+    {
+    if (d==0) g=20;
+    else {ga=ga+20-g;g=20;if (ga>139) ga=139;} 
+    } 
+   if (c==40&&b>c) b=c;
+   if (b>c) {b=b-c;c=c-10;} 
+   if (m>0) m=m-1;
+   }
+//------------------------------------------------------------------
+void power()//李元元的蓄力
+   {
+     if (E[0]!=2||abs(na-2)!=1||aa<0) goto L1100;
+if (n>0&&da!=0) {if (   abs(A[D[p-1]*18+8])<2   ) goto L1100;}
+ea=0;da=0;fa=0;  
+if (na==3) goto L1100;
+else if (pa==7) B[44]=va*3+6 ;
+else goto L1100;
+if (va<0) {va=0;goto L1100;} 
+if ((mode!=8&&CheckKey(20)==0)||(mode==8&&rand()/3277>8)) va=0;//不蓄力，打出来了
+else //继续蓄力
+ {
+  pa=6;va=va+1;
+ if (va==10) va=-14;
+ }
+L1100:
+}
+//--------------------------------------------------
+void power1()
+   {
+     if (D[0]!=2||abs(n-2)!=1||a<0) goto L2100;
+if (na>0&&d!=0) {if (   abs(B[E[pa-1]*18+8])<2   ) goto L2100;}
+e=0;d=0;f=0; 
+if (n==3) goto L2100;
+else if (p==7) A[44]=v*3+6 ;
+else goto L2100;
+if (v<0) {v=0;goto L2100;} 
+if ((mode==0&&CheckKey(115)==0)||(mode!=0&&rand()/3277>8)) v=0;
+else 
+ {
+  p=6;v=v+1;
+ if (v==10) v=-14;
+ }
+L2100:
+}
+//-------------------------------------------------------------------
+void die_set()
+{
+			a=a_bak;
+			aa=aa_bak;
+			 if(a==0)
+			   {
+				   n=0;d=-100;q=0;
+			   }
+			   if(aa==0){na=0;da=-100;qa=0;
+			   }
+}
+void die_comm(int die_mode)
+{
+		  //char tmp_buf[10];
+	  //sprintf(tmp_buf,"<%d,%d>",d,da);
+	  //TextOut(30,30,tmp_buf,0x63);
+	  //printf("%d %d",d,da);
+     if(end!=0)
+	 {
+		 die_set();
+		 //Delay(ms[1]);
+		 end_time++;
+	 }
+	 if((end!=0)&&(end_time==9))
+	 {
+		// while(1);
+			if(pre_win&&(pre_wina==0))
+		   {
+			   d=0;n=6;p=A[1];
+		   }
+		   if(pre_wina&&(pre_win==0))
+		   {
+			   da=0;na=6;pa=B[1];
+		   }
+		   
+	 }
+    if(end!=0&&(end_time==10))
+   {
+	   //while(1);
+	   if(end==1)Delay(2000); 
+	   wina=wina+pre_wina;
+	   win=win+pre_win;
+	  if(die_mode=='c')
+	  {
+		  aa=80;
+		  a=80;
+	  }
+	   if(die_mode=='p')
+	  {
+		  if(pre_wina&&pre_win)
+		  {
+			  a=80;aa=80;
+		  }
+		  else if(pre_wina)
+		  {
+			  aa=aa+27;
+			  a=80;
+		  }else if(pre_win)
+		  {
+			  a=a+27;
+			  aa=80;
+		  }
+			
+		  //if(a>0) {a=a+27;aa=80;}
+		  //if(aa>0) {aa=aa+27;a=80;}
+	  }
+	   reset2();
+	   	   Locate (2,6);
+	   printf(" %d : %d",win,wina);
+	   Delay(500);
+	   	   if(die_mode=='p')
+	   {
+		      		   		  x=list_2p[win];
+				  Read();
+			  		  x=list_1p[wina];
+					Read1();
+					
+	   }
+		   time_left=time_left0;
+   }
+   if ((end==0)&&(time_left<=0)) 
+   {
+	   //if(time_left<=0)
+	  // {
+	   	   a_bak=a;
+		   aa_bak=aa;
+		   if(aa>a) pre_wina++;
+		   if(aa<a) pre_win++;
+		   if(aa==a)
+		   {
+			   pre_wina++;
+			   pre_win++;
+		   }
+		   TextOut(45,40,"ROUND OVER",0xc3);
+		   Delay(500);
+		   end=2;
+	  // }
+   }
+   if((end==0)&&(aa==0||a==0))
+   {
+	   //if(time_left>0) 
+	   //{
+	   	   a_bak=a;
+		   aa_bak=aa;
+		   KoDraw();
+		   Delay(500);
+		   if(aa==0&&a==0)
+		   {
+			   pre_wina++;
+			   pre_win++;
+		   }
+		   else if(aa==0)
+		   {
+			   pre_win++;
+		   }
+		   else if(a==0)
+		   {
+			   pre_wina++;
+		   }
+		   end=1;
+		   die_set();
+	   //}
+
+
+   //if (a==0&&aa==0) {aa=80;a=80;reset2();win++;wina++;printf(" %d : %d",win,wina);Delay(300);}
+   //if (aa==0) {aa=80;a=80;win=win+1;reset2();printf(" %d : %d",win,wina);Delay(300);}
+   //if (a==0)  {a=80;aa=80;wina=wina+1;reset2();printf(" %d : %d",win,wina);Delay(300);}
+   }
+}
+void Diec()
+  {
+	  die_comm('c');
+  }
+void Diep()
+  {
+	  die_comm('p');
+	  /*
+   if (aa==0||a==0) 
+   {
+   
+   Delay(500);
+   Locate (2,6);
+   if (a==0&&aa==0) {aa=80;a=80;reset2();win++;wina++;printf(" %d : %d",win,wina);Delay(500);}
+   if (aa==0) {aa=80;a=a+27;reset2();win=win+1;printf(" %d : %d",win,wina);Delay(500);}
+   if (a==0)  {a=80;aa=aa+27;reset2();wina=wina+1;printf(" %d : %d",win,wina);Delay(500);}
+
+   }*/
+  }
+//----------------------------------------------------------------------
+void read_datx()
+{
+y=fopen("/LavaData/Windx.dat","r");
+if(y==0)
+{
+	y=fopen("/LavaData/Windx.dat","w+");
+}
+if(fread(datx,1,80,y)!=80)
+{
+	datx[1]=200;
+	datx[2]=300;
+	datx[3]=1;
+}
+fclose(y);
+time_left0=datx[2];
+//time_left=time_left0;
+time_on=datx[3];
+}
+int pause()
+{
+	int tmp;
+    if (CheckKey(27)!=0) 
+   {
+	   TextOut(45,40,"quit? Y/N",0xc3);
+	   //Refresh();
+	   while(1)
+	   {
+		tmp=Inkey();
+		if(tmp=='y') return -1;
+		if(tmp=='n') return 0;
+	   }
+   }
+}
+///---w---ww---
+void final()
+{
+	char buf[4];
+
+	z=1608*3+48;
+  y=fopen("/LavaData/Wind.dat","r");
+  if(y==0){printf("/LavaData/Wind.dat打开失败");Delay(1000);exit(0);}
+  fseek(y,z,0); 
+  for(i=0;;i++)
+  {
+	  fread(buf,1,3,y);
+	  	buf[3]=0;
+	  if(strcmp(buf,"***")==0) 
+	  {
+		  printf("***");
+		  Delay(3000);
+		  getchar();
+		  fclose(y);
+		  return ;
+	  }
+	  if(strcmp(buf,"SMT")==0)
+	  {
+		  printf("%s：",wqxchar[1]);
+	  }
+	  else if(strcmp(buf,"NAM")==0)
+	  {
+		  printf("%s：",wqxchar[0]);
+	  }
+	  else if(strcmp(buf,"HHF")==0)
+	  {
+		  printf("\n");
+		  //printf("<%d>",i);
+		  if(getchar()==27) {fclose(y);return;}
+	  }
+	  else if(strcmp(buf,"HHG")==0)
+	  {
+		  if(getchar()==27) {fclose(y);return;}
+	  }
+	  else
+	  {
+		  if(buf[0]==31)
+		  printf("%s",buf+1);
+		  else 
+			  printf("%s",buf);
+		  //buf[3]=0;
+		  //printf("%s",buf);
+		  Delay(50);
+	  }
+  }
+}
+void DrawT()
+{
+	if(time_on)draw_time();
+}
+void dec_time()
+{
+	 if(end==0)
+			{
+				if(time_on)
+				{
+					time_left=time_left-time_sub;
+					if(time_left<0) time_left=0;
+				}
+			}
+}
+int vs_computer()
+{
+	   Reset();//初使化
+	   while (1)
+	   {
+		   if(A[162]!=1111||B[162]!=1111||C[12]!=1111||D[39]!=1111||E[39]!=1111||X[8]!=1111||Y[8]!=1111||U[8]!=1111||V[8]!=1111)
+		   {
+			   printf("error!!!!");
+			   Delay(2000);
+		   }
+		   power();
+		   DrawP();//画人物 血槽 气槽 修复血量
+		   DrawT();
+		   sun();//处理张江东技能
+		   Diec();
+			if (win>=2||wina>=2) { if(wina>=2) return 1;else return 0;}
+		   // else Diec();
+		   recover();//击倒和击飞及恢复
+		   control();//键盘控制
+		   respond();//响应键盘控制
+		   Bullet();//飞行器
+		   move();//主要是移动 还有攒气
+		   //DrawP();
+		   power1();
+		   recover1();//击倒和击飞及恢复
+		   program1();//程序控制
+		   respond1();//反映控制
+		   Bullet1();//飞行器
+		   move1();//主要是移动 还有攒气
+		   dl();
+		   dec_time();
+		   if(pause()==-1) return -1;
+	   } 
+}
+
+
+void mode_2_cvp()
+{
+	int tmp;
+	int tmp2;
+	l_vs_com:
+	 SetScreen(0);
+	 DrawI();//画"风斗" "版权所有"之类的
+	 for(i=0;i<12;i++)
+	 {
+		 com_list[i]=i;
+	 }
+	 x=0;
+	 if(select()==-1) return;//选右边的
+	 Read();
+	 SetScreen(0);
+	 printf("\n      Stage  1");
+	 srand(Getms());
+	 x=rand()%10;
+	 for(i=0;i<10;i++)
+	 {
+		 tmp=com_list[i];
+		 tmp2=rand()%10;
+		 com_list[i]=com_list[tmp2];
+		 com_list[tmp2]=tmp;
+	 }
+	 if(select_comm(2,6)==-1) return;//选左边的
+	 //srand(Getms());
+	 tmp2=com_list[0];
+	 com_list[0]=x;
+	 com_now=0;
+	 for(i=1;i<12;i++)
+	 {
+		 if(com_list[i]==x)
+		 {
+			 com_list[i]=tmp2;
+			 break;
+		 }
+	 }
+	 SetScreen(0);
+	 for(i=0;i<12;i++)
+	 {
+		 //printf("<%d>",com_list[i]);
+	 }
+	 while(1)
+	 {
+		 x=com_list[com_now];
+		 Read1();
+		 SetScreen(0);
+		 Locate(1,6);
+		 printf("Stage  %d\n       %s",com_now+1,DAT[com_list[com_now]]);
+		 Delay(1000);
+		 tmp=vs_computer();
+		 if(tmp==1)
+		 {
+			 com_now++;
+			 if(com_now==12)
+			 {
+				 SetScreen(0);
+				 final();
+				 return ;
+				 //goto l_vs_com;
+				 //exit(0);
+			 }
+		 }
+		 else if(tmp==0)
+		 {
+			 DrawI();
+			 x=0;
+			 if(select()==-1) return;//选右边的
+			 Read();
+		 }
+		 else if(tmp==-1)
+		 {
+		 	 return ;
+		 }
+	 }
+}
+void mode_0_pvp()
+{
+	int tmp;
+	int tmp2;
+	while(1)
+	{
+l_vs_p:
+		wina=0;win=0;
+		draw_vs();
+		if(select_vs()==-1) return ;
+		//DrawI();//画"风斗" "版权所有"之类的
+		//select();//选右边的
+		x=list_2p[win];
+		Read();
+		//select1();//选左边的
+		x=list_1p[wina];
+		Read1();
+		Reset();//初使化
+		//Delay(200);
+		while (1)
+		{
+			power();
+
+			DrawP();//画人物 血槽 气槽 修复血量
+			DrawT();  
+			sun();
+			Diep();
+			if (win>=3||wina>=3) {Locate (3,4);if(wina>=3&&win>=3)  printf("    TIE"); else if (win>=3) printf("  1P WIN!");else if (wina>=3) printf("  2P WIN!");	Delay(1000);return;}
+			recover();//击倒和击飞及恢复
+			control();//键盘控制
+			respond();//反映控制
+			Bullet();//飞行器
+			move();//主要是移动 还有攒气
+			//DrawP();
+			power1();
+			recover1();//击倒和击飞及恢复
+			control1();//程序控制
+			respond1();//反映控制
+			Bullet1();//飞行器
+			move1();//主要是移动 还有攒气
+			dl();
+			dec_time();
+			if(pause()==-1) return ;
+		} 
+	}
+}
+void mode_10_auto()
+{
+	//DrawI();//画"风斗" "版权所有"之类的
+	//select();//选右边的
+	srand(Getms());
+	x=rand()%12;
+	Read();
+	//select1();//选左边的
+	x=rand()%12;
+	Read1();
+	Reset();//初使化
+	while (1)
+	{
+		power(); 
+		DrawP();//画人物 血槽 气槽 修复血量
+		DrawT();
+		sun();
+		Diec();
+		if(end!=0&&end_time==9)
+		{
+				x=rand()%12;
+				Read();
+				//select1();//选左边的
+				x=rand()%12;
+				Read1();
+		}
+		//if (win>=2||wina>=2) {exit(0);} 
+		recover();//击倒和击飞及恢复
+		program();//程序控制
+		respond();//反映控制
+		Bullet();//飞行器
+		move();//主要是移动 还有攒气
+		//DrawP();
+		power1();
+		recover1();//击倒和击飞及恢复
+		program1();//程序控制
+		respond1();//反映控制
+		Bullet1();//飞行器
+		move1();//主要是移动 还有攒气
+		dl();
+		dec_time();
+		if (Inkey()!=0) 
+		{
+			return ;
+		}
+		//pause();
+	} 
+}
+void mode_8_cvc()
+{
+	DrawI();//画"风斗" "版权所有"之类的
+	x=0;
+	if(select()==-1) return;//选右边的
+	Read();
+	SetScreen(0);
+	if(select1()==-1) return;//选左边的
+	Read1();
+	Reset();//初使化
+	while (1)
+	{
+		power(); 
+		DrawP();//画人物 血槽 气槽 修复血量
+		DrawT();
+		sun();
+		Diec();
+		//if (win>=2||wina>=2) {exit(0);} 
+		recover();//击倒和击飞及恢复
+		program();//程序控制
+		respond();//反映控制
+		Bullet();//飞行器
+		move();//主要是移动 还有攒气
+		//DrawP();
+		power1();
+		recover1();//击倒和击飞及恢复
+		program1();//程序控制
+		respond1();//反映控制
+		Bullet1();//飞行器
+		move1();//主要是移动 还有攒气
+		dl();
+		dec_time();
+		if(pause()==-1) return ;
+	} 
+}
+void mode_9()
+{
+	int tmp;
+	int sel;
+	char buf[100];
+//l00: 
+    SetScreen(1);
+    sel=0;
+	while(1)
+	{
+		tmp=Inkey();
+		if(tmp==20) {sel=sel-1;if(sel<0)sel=0;}
+		if(tmp==21) {sel=sel+1;if(sel>2)sel=2;}
+		if(tmp==13) break;
+		if(tmp==27) return;
+		//Locate(0,0);
+		sprintf(buf," 延时:%d(ms)      ",datx[1]);
+		ClearScreen();
+		TextOut(5,0,buf,1);
+		//Locate(1,0);
+		sprintf(buf," 倒计时:%d(帧)     ",datx[2]);
+		TextOut(5,15,buf,1);
+		//Locate(2,0);
+		if(datx[3]==0)sprintf(buf," 倒计时开关:关    ");
+		else sprintf(buf," 倒计时开关:开    ");
+		TextOut(5,30,buf,1);
+		TextOut(0,sel*15,">",1);
+		Refresh();
+		//Locate(sel,0);
+		//printf(">");
+		if(sel==0)
+		{
+			if (CheckKey(19)!=0) datx[1]=datx[1]-30;
+			if (CheckKey(14)!=0) datx[1]=datx[1]+30;
+			if(CheckKey(22)!=0) datx[1]=datx[1]+5;
+			if(CheckKey(23)!=0) datx[1]=datx[1]-5;
+
+		}
+		if(sel==1)
+		{
+			if (CheckKey(19)!=0) datx[2]=datx[2]-50;
+			if (CheckKey(14)!=0) datx[2]=datx[2]+50;
+			if(CheckKey(22)!=0) datx[2]=datx[2]+10;
+			if(CheckKey(23)!=0) datx[2]=datx[2]-10;
+		}
+		if(sel==2)
+		{
+			if (CheckKey(19)!=0) datx[3]=datx[3]-1;
+			if (CheckKey(14)!=0) datx[3]=datx[3]+1;
+			if(CheckKey(22)!=0) datx[3]=datx[3]+1;
+			if(CheckKey(23)!=0) datx[3]=datx[3]-1;
+		}
+		if (datx[1]>500) datx[1]=500;
+		if (datx[1]<5) datx[1]=5;
+		if (datx[2]>3000) datx[2]=3000;
+		if (datx[2]<30) datx[2]=30;
+		if (datx[3]>1) datx[3]=0;
+		if (datx[3]<0) datx[3]=1;
+		Delay(100);
+	}
+	/*
+	printf("延时:%d",datx[1]);
+	tmp=Inkey();
+	if (tmp==13) goto l01;
+	if (tmp==20) datx[1]=datx[1]-1;
+	if (tmp==21) datx[1]=datx[1]+1;
+	if (tmp==23) datx[1]=datx[1]-10;  
+	if (tmp==22) datx[1]=datx[1]+10; 
+	if (tmp==19) datx[1]=datx[1]-100;
+	if (tmp==14) datx[1]=datx[1]+100;
+	if (datx[1]>500) datx[1]=500;
+	if (datx[1]<0) datx[1]=0;*/
+	//goto l00;
+l01:
+	y=fopen("/LavaData/Windx.dat","wb+");
+	if(y==0){printf("/LavaData/Windx.dat打开失败");Delay(1000);exit(0);}
+	fwrite(datx,1,80,y);
+	fclose(y); 
+	return ;
+}
+void main()
+{
+	 int tmp;
+	 int tmp2;
+	 time_on=1;
+	// time_left0=30000;
+	 //time_left=time_left0;
+	 time_sub=1;
+	A[162]=1111;B[162]=1111;C[12]=1111;D[39]=1111;E[39]=1111;X[8]=1111;Y[8]=1111;U[8]=1111;V[8]=1111;
+	memset(wqxchar,0,150);
+	wqxchar[0][0]=0xfa;
+	wqxchar[0][1]=0xfb;
+	wqxchar[1][0]=0xfb;
+	wqxchar[1][1]=0x44;
+	wqxchar[2][0]=0xf8;
+	wqxchar[2][1]=0xb8;
+ l02:
+ read_datx();
+ Dat();
+ Begin();//开始的画面
+ if (2==mode) //-------------------------------------------------vs computer
+ {
+	 mode_2_cvp();
+	 goto l02;
+ }
+ else if (0==mode)//----------------------------------------------------------vs player
+ {
+	 mode_0_pvp();
+	 goto l02;
+ }
+ else if (8==mode) //------------------------------------------computer vs computer
+ {
+	 mode_8_cvc();
+	 goto l02;
+ }
+  else if (9==mode)
+ { 
+	 mode_9();
+	 SetScreen(0);
+	 goto l02;
+ }
+  else if(10==mode)
+  {
+	  mode_10_auto();
+	  goto l02;
+  }
+}
